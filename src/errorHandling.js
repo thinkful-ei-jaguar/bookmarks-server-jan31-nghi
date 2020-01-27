@@ -1,3 +1,5 @@
+const {NODE_ENV} = require('./config');
+
 module.exports = function(error, req, res, next) {
     let response;
     if(NODE_ENV === 'production') {
