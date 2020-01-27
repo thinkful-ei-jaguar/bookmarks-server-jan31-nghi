@@ -53,7 +53,7 @@ bookmarkRouter
         .send('Card Not Found');
     }
     res
-      .json(bookmarks)
+      .json(bookmark);
   })
   .delete((req, res) => {
     const { id } = req.params;
