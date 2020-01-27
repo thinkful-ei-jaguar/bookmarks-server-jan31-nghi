@@ -5,7 +5,7 @@ const { bookmarks } = require('./store');
 const logger = require('./logger');
 
 bookmarkRouter
-  .route('/bookmarks')
+  .route('/')
   .get((req, res) => {
     res
       .json(bookmarks)
@@ -40,7 +40,7 @@ bookmarkRouter
   });
 
 bookmarkRouter
-  .route('/bookmarks/:id')
+  .route('/:id')
   .get((req, res) => {
     const { id } = req.params; //this is the users the id 
     const bookmark = bookmarks.find(b => b.id == id); 

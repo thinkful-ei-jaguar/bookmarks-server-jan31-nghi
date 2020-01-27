@@ -23,15 +23,12 @@ app.use(morgan(morganOption));
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use(errorHandling);
 app.use(validateToken);
 
 
 // Routes
-app.use(bookmarkRouter);
-app.get('/', (req, res) => {
-  res.json( { message: 'Hello World' } );
-});
-
+app.use('/bookmarks', bookmarkRouter);
+// Error handling
+app.use(errorHandling);
 
 module.exports = app;
