@@ -7,19 +7,13 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
 const bookmarkRouter = require('./bookmarkRoute');
-const winston = require('winston');
-const logger = require('./logger');
 const validateToken = require('./validateToken');
 const errorHandling = require('./errorHandling');
 
 
 const app = express();
 
-if (NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }));
-}
+
 const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
   : 'common';
