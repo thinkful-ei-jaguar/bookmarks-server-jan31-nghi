@@ -2,7 +2,6 @@ const {NODE_ENV} = require('./config');
 
 module.exports = function(error, req, res, next) {
     let response;
-    console.log(error);
     if(NODE_ENV === 'production') {
       response = { error: { message: 'server error' } };
     } else {
