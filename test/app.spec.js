@@ -43,8 +43,18 @@ describe('App', () => {
         .expect(200, testBookmark);
     });
     // ------- Test 3
-
-  });
+    it('DELETE /bookmarks/:id should expect 204', () => {
+      const id = 1;
+      const expectedList = testBookmarks.filter(b => b.id != id);
+      return supertest(app)
+        .delete(`/bookmarks/${id}`)
+        .expect(204)
+        .then(res => 
+          supertest(app)
+          .get('/bookmarks')
+          .expect(expectedList));
+    });
+  }); 
 
 
   context('Given db has no data', () => {
@@ -55,7 +65,7 @@ describe('App', () => {
         .expect(200, []);
     });
     // ------- Test 5
-    it.skip('POST /bookmarks should expect 201', () => {
+    it('POST /bookmarks should expect 201', () => {
       const newBookmark = {
         title: 'Amazon',
         url: 'https://www.amazon.com',
@@ -71,7 +81,9 @@ describe('App', () => {
           expect(res.body.title).to.eql(newBookmark.title);
           expect(res.body.url).to.eql(newBookmark.url);
           expect(res.body.description).to.eql(newBookmark.description);
-          expect(res.header.location).to.eql(`/bookmarks/${res.body.id}`);
+          expect(res.body.rating).to.eql(newBookmark.rating);
+          expect(res.body).to.have.property('id');
+          expect(res.headers.location).to.eql(`/bookmarks/${res.body.id}`);
 
           return db('bookmarks')
             .select('*')
@@ -84,5 +96,18 @@ describe('App', () => {
           .get(`/bookmarks/${posted.body.id}`)
           .expect(posted.body));
     });
+
+
+    // ------- Test 6
+    it('POST /bookmarks responds with 400 when empty', () => {
+      return supertest(app)
+        .post('/bookmarks')
+        .send({title: 'Test Title'})
+        .expect(
+          400, 
+          { error: { message: 'Title, Url and Rating are required'}});
+    });  
+
+
   });
 });

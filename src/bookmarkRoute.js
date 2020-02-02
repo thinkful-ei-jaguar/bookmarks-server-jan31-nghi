@@ -4,7 +4,6 @@ const express = require('express');
 const bookmarkRouter = express.Router();
 const logger = require('./logger');
 const BookmarkService = require('./bookmark-service');
-const jsonParser = express.json();
 
 bookmarkRouter
   .route('/')
@@ -13,14 +12,14 @@ bookmarkRouter
       .getBookmarks(req.app.get('db'))
       .then(bookmarks => res.json(bookmarks));
   })
-  .post(jsonParser, (req, res, next) => {
+  .post((req, res, next) => {
     const { title, url, description = '', rating } = req.body; 
   
     if( !title || !url || !rating ) {
       logger.error('Title, Url and Rating are required');
       return res
       .status(400)
-      .send('Invalid data');
+      .json({error: {message: 'Title, Url and Rating are required'}});
     }
   
     const newBookmark = {
@@ -29,15 +28,13 @@ bookmarkRouter
       description,
       rating
     };
-  
-    logger.info( `Bookmark with id ${id} created`);
     
     BookmarkService
       .addBookmark(res.app.get('db'), newBookmark)
       .then(newlyAdded => 
         res
         .status(201)
-        .location(`/bookmarks/${id}`)
+        .location(`/bookmarks/${newlyAdded.id}`)
         .json(newlyAdded))
       .catch(next);
   });
@@ -50,24 +47,16 @@ bookmarkRouter
       .getByID(req.app.get('db'), id)
       .then(foundItem => res.json(foundItem));
   })
-  .delete((req, res) => {
+  .delete((req, res, next) => {
     const { id } = req.params;
-  
-    const index = bookmarks.findIndex(bookmark => bookmark.id == id);
-  
-    if(index === -1) { 
-      logger.error(`List with id ${ id } not found.`);
-      return res
-        .status(404)
-        .end();
-    }
-  
-    bookmarks.splice(index, 1);
+
+    BookmarkService
+      .removeBookmark(req.app.get('db'), id)
+      .then(() => res.status(204).end())
+      .catch(next);
+
   
     logger.info(`List with id ${id} deleted.`);
-    res
-      .status(204)
-      .end();
   });
 
   module.exports = bookmarkRouter;
