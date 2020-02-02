@@ -1,16 +1,19 @@
 const express = require('express');
+// Use express.router class to create modular route handlers
+// Similar to a mini app
 const bookmarkRouter = express.Router();
-const uuid = require('uuid/v4');
-const { bookmarks } = require('./store');
 const logger = require('./logger');
+const BookmarkService = require('./bookmark-service');
+const jsonParser = express.json();
 
 bookmarkRouter
   .route('/')
   .get((req, res) => {
-    res
-      .json(bookmarks)
+    BookmarkService
+      .getBookmarks(req.app.get('db'))
+      .then(bookmarks => res.json(bookmarks));
   })
-  .post((req, res) => {
+  .post(jsonParser, (req, res, next) => {
     const { title, url, description = '', rating } = req.body; 
   
     if( !title || !url || !rating ) {
@@ -19,41 +22,33 @@ bookmarkRouter
       .status(400)
       .send('Invalid data');
     }
-    const id = uuid();
   
-    const bookmark = {
-      id,
+    const newBookmark = {
       title,
       url,
       description,
       rating
     };
-    
-    bookmarks.push(bookmark)
   
     logger.info( `Bookmark with id ${id} created`);
-  
-    res
-      .status(201)
-      .location(`http://localhost:8000/bookmarks/${id}`)
-      .json(bookmark);
+    
+    BookmarkService
+      .addBookmark(res.app.get('db'), newBookmark)
+      .then(newlyAdded => 
+        res
+        .status(201)
+        .location(`/bookmarks/${id}`)
+        .json(newlyAdded))
+      .catch(next);
   });
 
 bookmarkRouter
   .route('/:id')
   .get((req, res) => {
-    const { id } = req.params; //this is the users the id 
-    const bookmark = bookmarks.find(b => b.id == id); 
-
-    //make sure we found a bookmark
-    if(!bookmark) {
-      logger.error('Bookmark with id ${id} not found.');
-      return res 
-        .status(404)
-        .send('Card Not Found');
-    }
-    res
-      .json(bookmark);
+    const { id } = req.params; //this is the user id 
+    BookmarkService
+      .getByID(req.app.get('db'), id)
+      .then(foundItem => res.json(foundItem));
   })
   .delete((req, res) => {
     const { id } = req.params;
